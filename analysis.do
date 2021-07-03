@@ -17,33 +17,33 @@ use "C:\Users\Administrator\Desktop\Life_Expectancy\data_cleaned.dta", clear
 /*Declare data set as panel data */
 xtset id_country year
 
-summarize urban_pop-gni_pcap, detail // Would get percentiles, skewness and kurtosis values also
+summarize life_exp urban_pop gni10000 unemployment bottom_50per_income ghe_per ghe_10000 undernourishment immune pollution, detail // Would get percentiles, skewness and kurtosis values also
 
-table country_name, contents(mean urban_pop mean ghe_per mean life_exp mean undernourishment mean immune )
-table country_name, contents(mean pollution mean gni_pcap mean unemployment mean ghe_pcap mean bottom_50per_income )
+table country_name, contents(mean life_exp mean urban_pop mean gni10000 mean unemployment mean bottom_50per_income)
+table country_name, contents(mean ghe_per mean ghe10000 mean undernourishment mean immune mean pollution)
 //Exported the above tables to excel to get meaningful results
 
 
 /*Asia mean performance over the years*/
-table year, contents(mean urban_pop mean ghe_per mean life_exp mean undernourishment mean immune )
-table year, contents(mean pollution mean gni_pcap mean unemployment mean ghe_pcap mean bottom_50per_income )
+table year, contents(mean life_exp mean urban_pop mean gni10000 mean unemployment mean bottom_50per_income)
+table year, contents(mean ghe_per mean ghe10000 mean undernourishment mean immune mean pollution)
 /*Exported to excel to analyse*/
 
 
 /*Now to look at Correlation*/
 //First look at Pearson Correlation coefficient
-pwcorr urban_pop-gni_pcap, sig star(5)
+pwcorr life_exp urban_pop gni10000 unemployment bottom_50per_income ghe_per ghe_10000 undernourishment immune pollution, sig star(5)
 
 /*But 2 possible issues with this*/
 //By a scatterplot matrix, the relation between most variables is non linear
-graph matrix urban_pop-gni_pcap, half
+graph matrix life_exp urban_pop gni10000 unemployment bottom_50per_income ghe_per ghe_10000 undernourishment immune pollution, half
 
 //Also variables need to be normal for Pearson correlation
 //Testing for normality by Shapiro - Wilk W Test
-swilk urban_pop-gni_pcap
+swilk life_exp urban_pop gni10000 unemployment bottom_50per_income ghe_per ghe_10000 undernourishment immune pollution
 
 //2 options- Transform or Spearman. Here take spearman
-spearman urban_pop-gni_pcap, stats(rho p) star(0.05) pw matrix
+spearman life_exp urban_pop gni10000 unemployment bottom_50per_income ghe_per ghe_10000 undernourishment immune pollution, stats(rho p) star(0.05) pw matrix
 
 //The obtained correlations are quite different in Spearman as compared to Pearson
 
@@ -66,7 +66,7 @@ extremes ghe_pcap
 list year country_name ghe_pcap if ghe_pcap > 1504 // 95th percentile
 list year country_name ghe_pcap if ghe_pcap > 3000
 
-extremes gni
+extremes gni_pcap
 list year country_name gni_pcap if gni_pcap >82064 // 95th percentile
 
 extremes unemployment
