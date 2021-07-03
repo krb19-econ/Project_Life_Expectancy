@@ -10,32 +10,37 @@ use "C:\Users\Administrator\Desktop\Life_Expectancy\data_cleaned.dta", clear
 /*Panel data*/
 xtset id_country year
 
+/*Wouldn't be including pollution and undernourishment data*/
 
-/*Test for time fixed effects*/
-xtreg life_exp urban_pop unemployment bottom_50per_income gni_pcap ghe_per undernourishment immune pollution i.year , fe
+/*TIME FIXED EFFECTS*/
+xtreg life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune i.year , fe
 testparm i.year
 
 //HAS COME OUT TO BE SIGNIFICANT. SHOULD KEEP TIME FIXED EFFECTS ALSO
 
 
 
-/*MULTICOLLINEARITY*/
-//Using VIF would give fallacious results; extremely high due to presence of dummies
+/*SERIAL CORRELATION*/ 
+xtserial life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune
+//Indicates autocorrelation
 
-regress life_exp urban_pop ghe_per undernourishment immune pollution unemployment bottom_50per_income gni_pcap i.id_country
-estat vif
 
-//Rather than this, use vce matrix after fixed effects model
-xtreg life_exp urban_pop unemployment bottom_50per_income gni_pcap ghe_per undernourishment immune pollution, fe
-estat vce, corr
-//Seems ok
+
+/*PANEL CORRELATION*/
+xtreg life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune, fe
+xtcsd, pesaran 
+
+xtcdf urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune
+//Both show existance of panel correlation
+
+
 
 
 
 /*HETEROSCEDASTICITY*/
 //Will look at error vs Y fitted and error^2 vs Y fitted
 
-xtreg life_exp urban_pop unemployment bottom_50per_income gni_pcap ghe_per undernourishment immune pollution, fe
+xtreg life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune, fe
 predict error, e
 predict fit, xb
 generate error_sq = error^2
@@ -52,24 +57,26 @@ xttest3
 //Clearly indicates heteroscedasticity
 
 /*Whiite's General Test*/
-regress error_sq urban_pop ghe_per undernourishment immune pollution unemployment bottom_50per_income gni_pcap
+regress life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune
 //Here also the F test is significant
 
-
-
-/*SERIAL CORRELATION*/ 
-xtserial life_exp urban_pop ghe_per  undernourishment immune pollution unemployment bottom_50per_income gni_pcap
-//Indicates autocorrelation
-
-/*PANEL CORRELATION*/
-xtreg life_exp urban_pop unemployment bottom_50per_income gni_pcap ghe_per undernourishment immune pollution, fe
-xtcsd, pesaran 
-
-xtcdf urban_pop ghe_per undernourishment immune pollution unemployment bottom_50per_income gni_pcap
-//Both show existance of panel correlation
+/*Hence we have presence of heteroscedasticity*/
 
 
 
-/*LINEARITY*/
+
+/*MULTICOLLINEARITY*/
+//Using VIF would give fallacious results; extremely high due to presence of dummies
+
+regress life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune i.id_country
+estat vif
+
+//Rather than this, use vce matrix after fixed effects model
+xtreg life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune, fe vce(cluster id_country)
+estat vce, corr
+
+xtreg life_exp urban_pop unemployment bottom_50per_income gni10000 ghe10000 ghe_per immune i.year , fe vce(cluster id_country)
+estat vce, corr 
+
 
 log close
